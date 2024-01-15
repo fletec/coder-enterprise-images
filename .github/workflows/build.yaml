@@ -106,7 +106,7 @@ jobs:
             --platform linux/arm64,linux/amd64 \
             --push \
             --tag $ECR_REPO_URL:$GITHUB_SHA_SHORT \
-            --file $IMAGE_FILE \
+            --file $IMAGE_DIR/$IMAGE_FILE \
             $IMAGE_DIR 
 
 #      - name: Install Trivy using install script
