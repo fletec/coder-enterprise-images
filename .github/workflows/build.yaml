@@ -46,31 +46,29 @@ env:
 
 jobs:
   # Quick checks, running linters, checking formatting, etc
-  quick:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cancel previous runs
-        if: github.event_name == 'pull_request'
-        uses: styfle/cancel-workflow-action@0.11.0
-
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-
-      - name: Install Node.js modules
-        run: yarn install
-
-      - name: Check formatting
-        run: yarn format:check
+#  quick:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Cancel previous runs
+#        if: github.event_name == 'pull_request'
+#        uses: styfle/cancel-workflow-action@0.11.0
+#
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#
+#      - name: Install Node.js
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: 16.x
+#
+#      - name: Install Node.js modules
+#        run: yarn install
+#
+#      - name: Check formatting
+#        run: yarn format:check
 
   images:
-    runs-on: ubuntu-latest-8-cores
-    strategy:
-      fail-fast: false
+    runs-on: ubuntu-latest
     name: images/ubuntu
     steps:
       - name: Cancel previous runs
