@@ -96,32 +96,30 @@ jobs:
 
       - name: 'Build coder-base-arm'
         env:
-          IMAGE_DIR: ./images/base-arm
-          IMAGE_FILE: Dockerfile.ubuntu
-          ECR_REPOSITORY: coder-base-arm
+          TAG: ubuntu-arm
+          IMAGE_DIR: ./images/base
+          ECR_REPOSITORY: coder-base
         run: |
           ECR_REPO_URL=$AWS_ECR/$ECR_REPOSITORY
-          GITHUB_SHA_SHORT=$(echo ${GITHUB_SHA} | cut -c 1-7)
           docker buildx build \
             --platform linux/arm64,linux/amd64 \
             --push \
-            --tag $ECR_REPO_URL:$GITHUB_SHA_SHORT \
-            --file $IMAGE_DIR/$IMAGE_FILE \
+            --tag $ECR_REPO_URL:$TAG \
+            --file $IMAGE_DIR/Dockerfile.$TAG \
             $IMAGE_DIR 
 
       - name: 'Build coder-minimal-arm'
         env:
-          IMAGE_DIR: ./images/minimal-arm
-          IMAGE_FILE: Dockerfile.ubuntu
-          ECR_REPOSITORY: coder-minimal-arm
+          TAG: ubuntu-arm
+          IMAGE_DIR: ./images/minimal
+          ECR_REPOSITORY: coder-minimal
         run: |
           ECR_REPO_URL=$AWS_ECR/$ECR_REPOSITORY
-          GITHUB_SHA_SHORT=$(echo ${GITHUB_SHA} | cut -c 1-7)
           docker buildx build \
             --platform linux/arm64,linux/amd64 \
             --push \
-            --tag $ECR_REPO_URL:$GITHUB_SHA_SHORT \
-            --file $IMAGE_DIR/$IMAGE_FILE \
+            --tag $ECR_REPO_URL:$TAG \
+            --file $IMAGE_DIR/Dockerfile.$TAG \
             $IMAGE_DIR 
 
 #      - name: Install Trivy using install script
