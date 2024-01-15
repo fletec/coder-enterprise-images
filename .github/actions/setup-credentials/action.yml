@@ -1,0 +1,52 @@
+name: 'Setup credentials'
+description: 'Setup pipeline credentials'
+inputs:
+  aws-access-key-id:
+    description: AWS access key id
+    required: true
+  aws-secret-access-key:
+    description: AWS secret access key
+    required: true
+  ms-teams-webhook-url:
+    description: MS Teams webhook URL
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: MS Teams notifier
+      uses: fletec/ms-teams-deploy-card@master
+      if: always()
+      with:
+        github-token: ${{ github.token }}
+        webhook-uri: ${{ inputs.ms-teams-webhook-url }}
+        card-layout-exit: complete
+        show-on-start: false
+        include-files: false
+        show-on-exit: false
+        show-on-failure: true
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: eu-central-1
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Login to AWS CodeArtifact
+      shell: bash
+      run: |
+        CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain fletec --domain-owner ${AWS_ACCOUNT} --query authorizationToken --output text`
+        # set some environment variables to be used in the remaining job steps
+        echo "CODEARTIFACT_AUTH_TOKEN=${CODEARTIFACT_AUTH_TOKEN}" >> $GITHUB_ENV
+        echo "GITHUB_SHA_SHORT=$(echo ${GITHUB_SHA} | cut -c 1-7)" >> $GITHUB_ENV
+
+    - name: Install tools
+      shell: bash
+      run: |
+        sudo sh -c "curl -s https://raw.githubusercontent.com/kadwanev/retry/master/retry -o /usr/local/bin/retry && chmod +x /usr/local/bin/retry"
+

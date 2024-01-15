@@ -1,0 +1,79 @@
+name: 'Deploy application'
+description: 'Deploy application'
+inputs:
+  environment:
+    description: Target environment
+    required: true
+  application:
+    description: Application to deploy
+    required: true
+  deploy-repo-token:
+    description: Github token for fletec-deploy-config repo
+    required: true
+  head_sha:
+    description: Git commit to be deployed
+    required: true
+  release:
+    description: Git release
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Kustomize
+      uses: imranismail/setup-kustomize@v2
+      with:
+        kustomize-version: "v4.1.2"
+
+    - name: Create GitHub deployment
+      uses: avakar/create-deployment@v1
+      id: deployment
+      with:
+        # the task is shown in JIRA deployments tab for pipeline + deployment names
+        task: deploy:${{ inputs.environment }}:${{ inputs.application }}
+        environment: ${{ inputs.environment }}
+        # must explicitly set to '' to avoid an error
+        required_contexts: ''
+        auto_merge: false
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Check out deployment repo
+      shell: bash
+      run: |
+        git clone https://${REPO_TOKEN}@github.com/fletec/fletec-deploy-config.git fletec-deploy-config
+      env:
+        REPO_TOKEN: "ci-user:${{ inputs.deploy-repo-token }}"
+
+    - name: Deploy application
+      shell: bash
+      run: |
+        GITHUB_SHA_SHORT=$(echo ${{ inputs.head_sha }} | cut -c 1-7)
+        echo "Starting deployment '${{ inputs.application }}:${GITHUB_SHA_SHORT}' to ${{ inputs.environment }}"
+        cd fletec-deploy-config
+        ./trigger-deploy.sh \
+          --app ${{ inputs.application }} \
+          --image ${AWS_ECR}/${{ inputs.application }} \
+          --tag ${GITHUB_SHA_SHORT} \
+          --env ${{ inputs.environment }} \
+          --msg '${{ github.event.commits[0].message }}' \
+          --release ${{ inputs.release }}
+
+    - name: Update deployment status (success)
+      if: success()
+      uses: avakar/set-deployment-status@v1
+      with:
+        state: success
+        deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+        log_url: ${{ github.server_url }}/${{ github.repository }}/commit/${{ inputs.head_sha }}/checks
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Update deployment status (failure)
+      if: failure()
+      uses: avakar/set-deployment-status@v1
+      with:
+        state: failure
+        deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+        log_url: ${{ github.server_url }}/${{ github.repository }}/commit/${{ inputs.head_sha }}/checks
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
