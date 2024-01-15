@@ -1,0 +1,12 @@
+FROM 692490534637.dkr.ecr.eu-central-1.amazonaws.com/coder-base:ubuntu-arm
+
+# Run everything as root
+USER root
+
+# Install jupyter
+RUN pip3 install jupyterlab==3.5.2 && \
+    pip3 install jupyter-core==5.1.3 && \
+    pip3 install notebook==6.5.2
+
+# Set back to coder user
+USER coder

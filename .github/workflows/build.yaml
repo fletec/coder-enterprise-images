@@ -45,28 +45,6 @@ env:
   AWS_ECR: 692490534637.dkr.ecr.eu-central-1.amazonaws.com
 
 jobs:
-  # Quick checks, running linters, checking formatting, etc
-#  quick:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Cancel previous runs
-#        if: github.event_name == 'pull_request'
-#        uses: styfle/cancel-workflow-action@0.11.0
-#
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#
-#      - name: Install Node.js
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: 16.x
-#
-#      - name: Install Node.js modules
-#        run: yarn install
-#
-#      - name: Check formatting
-#        run: yarn format:check
-
   images:
     runs-on: ubuntu-latest
     name: images/ubuntu
@@ -113,6 +91,20 @@ jobs:
           TAG: ubuntu-arm
           IMAGE_DIR: ./images/minimal
           ECR_REPOSITORY: coder-minimal
+        run: |
+          ECR_REPO_URL=$AWS_ECR/$ECR_REPOSITORY
+          docker buildx build \
+            --platform linux/arm64 \
+            --push \
+            --tag $ECR_REPO_URL:$TAG \
+            --file $IMAGE_DIR/Dockerfile.$TAG \
+            $IMAGE_DIR 
+
+      - name: 'Build coder-jupyter-arm'
+        env:
+          TAG: ubuntu-arm
+          IMAGE_DIR: ./images/jupyter
+          ECR_REPOSITORY: coder-jupyter
         run: |
           ECR_REPO_URL=$AWS_ECR/$ECR_REPOSITORY
           docker buildx build \
