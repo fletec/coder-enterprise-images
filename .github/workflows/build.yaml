@@ -102,7 +102,7 @@ jobs:
         run: |
           ECR_REPO_URL=$AWS_ECR/$ECR_REPOSITORY
           docker buildx build \
-            --platform linux/arm64,linux/amd64 \
+            --platform linux/arm64 \
             --push \
             --tag $ECR_REPO_URL:$TAG \
             --file $IMAGE_DIR/Dockerfile.$TAG \
@@ -116,7 +116,7 @@ jobs:
         run: |
           ECR_REPO_URL=$AWS_ECR/$ECR_REPOSITORY
           docker buildx build \
-            --platform linux/arm64,linux/amd64 \
+            --platform linux/arm64 \
             --push \
             --tag $ECR_REPO_URL:$TAG \
             --file $IMAGE_DIR/Dockerfile.$TAG \
